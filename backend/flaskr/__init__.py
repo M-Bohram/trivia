@@ -10,6 +10,12 @@ from models import setup_db, Question, Category
 QUESTIONS_PER_PAGE = 10
 
 
+def get_paginated_selection(page, selection):
+    start = QUESTIONS_PER_PAGE * (page - 1)
+    end = page * QUESTIONS_PER_PAGE
+    return selection[start:end]
+
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -36,10 +42,8 @@ def create_app(test_config=None):
     @app.route('/questions')
     def get_paginated_questions():
         page_num = int(request.args.get('page', 1))
-        start = QUESTIONS_PER_PAGE * (page_num - 1)
-        end = page_num * QUESTIONS_PER_PAGE
         total_questions = Question.query.order_by('id').all()
-        questions = total_questions[start:end]
+        questions = get_paginated_selection(page=page_num, selection=total_questions)
         if questions:
             formatted_questions = [question.format()
                                    for question in questions]
@@ -84,7 +88,6 @@ def create_app(test_config=None):
                 answer_text = request.get_json()['answer']
                 category = request.get_json()['category']
                 difficulty_score = request.get_json()['difficulty']
-                print(request.get_json())
                 question = Question(question=question_text,
                                     answer=answer_text,
                                     category=category,
